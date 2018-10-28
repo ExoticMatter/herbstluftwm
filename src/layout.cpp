@@ -678,7 +678,20 @@ int frame_current_set_client_layout(int argc, char** argv, GString* output) {
 
 void frame_apply_client_layout_linear(HSFrame* frame, Rectangle rect, bool vertical) {
     HSClient** buf = frame->content.clients.buf;
-    size_t count = frame->content.clients.count;
+    size_t count = frame->content.clients.count, tiled_count = count, end_tiled = -1;
+    for (int i = 0; i < count; i++) {
+        HSClient* client = buf[i];
+        if (client->popup) {
+            // remove floating clients from tiled_count and float the window
+            tiled_count--; 
+            client_resize_floating(client, find_monitor_with_tag(client->tag));
+        } else {
+            end_tiled = i;
+        }
+    }
+    if (!++end_tiled) {
+        return;
+    }
     Rectangle cur = rect;
     int last_step_y;
     int last_step_x;
@@ -686,27 +699,29 @@ void frame_apply_client_layout_linear(HSFrame* frame, Rectangle rect, bool verti
     int step_x;
     if (vertical) {
         // only do steps in y direction
-        last_step_y = cur.height % count; // get the space on bottom
+        last_step_y = cur.height % tiled_count; // get the space on bottom
         last_step_x = 0;
-        cur.height /= count;
+        cur.height /= tiled_count;
         step_y = cur.height;
         step_x = 0;
     } else {
         // only do steps in x direction
         last_step_y = 0;
-        last_step_x = cur.width % count; // get the space on the right
-        cur.width /= count;
+        last_step_x = cur.width % tiled_count; // get the space on the right
+        cur.width /= tiled_count;
         step_y = 0;
         step_x = cur.width;
     }
-    for (int i = 0; i < count; i++) {
+    for (int i = 0; i < end_tiled; i++) {
         HSClient* client = buf[i];
-        // add the space, if count does not divide frameheight without remainder
-        cur.height += (i == count-1) ? last_step_y : 0;
-        cur.width += (i == count-1) ? last_step_x : 0;
-        client_resize_tiling(client, cur, frame);
-        cur.y += step_y;
-        cur.x += step_x;
+        if (!client->popup) {
+            // add the space, if count does not divide frameheight without remainder
+            cur.height += (i == end_tiled-1) ? last_step_y : 0;
+            cur.width += (i == end_tiled-1) ? last_step_x : 0;
+            client_resize_tiling(client, cur, frame);
+            cur.y += step_y;
+            cur.x += step_x;
+        }
     }
 }
 
@@ -747,17 +762,25 @@ void frame_layout_grid_get_size(size_t count, int* res_rows, int* res_cols) {
 
 void frame_apply_client_layout_grid(HSFrame* frame, Rectangle rect) {
     HSClient** buf = frame->content.clients.buf;
-    size_t count = frame->content.clients.count;
+    size_t count = frame->content.clients.count, tiled_count = count;
     int selection = frame->content.clients.selection;
-    if (count == 0) {
+    for (int i = 0; i < count; i++) {
+        HSClient* client = buf[i];
+        if (client->popup) {
+            // remove floating clients from tiled_count and float the window
+            tiled_count--; 
+            client_resize_floating(client, find_monitor_with_tag(client->tag));
+        }
+    }
+    if (tiled_count == 0 || count == 0) {
         return;
     }
 
     int rows, cols;
-    frame_layout_grid_get_size(count, &rows, &cols);
+    frame_layout_grid_get_size(tiled_count, &rows, &cols);
     int width = rect.width / cols;
     int height = rect.height / rows;
-    int i = 0;
+    int i = 0, j = 0;
     Rectangle cur = rect; // current rectangle
     for (int r = 0; r < rows; r++) {
         // reset to left
@@ -769,20 +792,22 @@ void frame_apply_client_layout_grid(HSFrame* frame, Rectangle rect) {
             cur.height += rect.height % rows;
         }
         for (int c = 0; c < cols && i < count; c++) {
-            if (*g_gapless_grid && (i == count - 1) // if last client
-                && (count % cols != 0)) {           // if cols remain
-                // fill remaining cols with client
-                cur.width = rect.x + rect.width - cur.x;
-            } else if (c == cols - 1) {
-                // fill small pixel gap in last col
-                cur.width += rect.width % cols;
-            }
-
             // apply size
             HSClient* client = buf[i];
             client_setup_border(client, (g_cur_frame == frame) && (i == selection));
-            client_resize_tiling(client, cur, frame);
-            cur.x += width;
+            if (!client->popup) {
+                if (*g_gapless_grid && (j == tiled_count - 1) // if last client
+                    && (tiled_count % cols != 0)) {           // if cols remain
+                    // fill remaining cols with client
+                    cur.width = rect.x + rect.width - cur.x;
+                } else if (c == cols - 1) {
+                    // fill small pixel gap in last col
+                    cur.width += rect.width % cols;
+                }
+                client_resize_tiling(client, cur, frame);
+                cur.x += width;
+                j++;
+            }
             i++;
         }
         cur.y += height;

@@ -32,6 +32,7 @@ typedef struct HSClient {
     bool        fullscreen;
     bool        ewmhfullscreen; // ewmh fullscreen state
     bool        pseudotile; // only move client but don't resize (if possible)
+    bool        popup; // float client even if tag isn't floating
     bool        neverfocus; // do not give the focus via XSetInputFocus
     bool        ewmhrequests; // accept ewmh-requests for this client
     bool        ewmhnotify; // send ewmh-notifications for this client
@@ -109,6 +110,7 @@ bool client_sendevent(HSClient *client, Atom proto);
 
 void client_set_fullscreen(HSClient* client, bool state);
 void client_set_pseudotile(HSClient* client, bool state);
+void client_set_popup(HSClient* client, bool state);
 // sets a client property, depending on argv[0]
 int client_set_property_command(int argc, char** argv);
 bool is_window_class_ignored(char* window_class);

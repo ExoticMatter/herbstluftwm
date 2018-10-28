@@ -58,6 +58,7 @@ DECLARE_CONSEQUENCE(consequence_focus);
 DECLARE_CONSEQUENCE(consequence_manage);
 DECLARE_CONSEQUENCE(consequence_index);
 DECLARE_CONSEQUENCE(consequence_pseudotile);
+DECLARE_CONSEQUENCE(consequence_popup);
 DECLARE_CONSEQUENCE(consequence_fullscreen);
 DECLARE_CONSEQUENCE(consequence_switchtag);
 DECLARE_CONSEQUENCE(consequence_ewmhrequests);
@@ -89,6 +90,7 @@ static HSConsequenceType g_consequence_types[] = {
     { "switchtag",      consequence_switchtag       },
     { "manage",         consequence_manage          },
     { "pseudotile",     consequence_pseudotile      },
+    { "popup",          consequence_popup           },
     { "fullscreen",     consequence_fullscreen      },
     { "ewmhrequests",   consequence_ewmhrequests    },
     { "ewmhnotify",     consequence_ewmhnotify      },
@@ -759,6 +761,11 @@ void consequence_index(HSConsequence* cons, HSClient* client,
 void consequence_pseudotile(HSConsequence* cons, HSClient* client,
                             HSClientChanges* changes) {
     client->pseudotile = string_to_bool(cons->value.str, client->pseudotile);
+}
+
+void consequence_popup(HSConsequence* cons, HSClient* client,
+                            HSClientChanges* changes) {
+    client->popup = string_to_bool(cons->value.str, client->popup);
 }
 
 void consequence_fullscreen(HSConsequence* cons, HSClient* client,

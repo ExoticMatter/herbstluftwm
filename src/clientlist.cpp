@@ -64,6 +64,7 @@ static HSClient* create_client() {
     hc->fullscreen = false;
     hc->ewmhfullscreen = false;
     hc->pseudotile = false;
+    hc->popup = false;
     hc->ewmhrequests = true;
     hc->ewmhnotify = true;
     hc->sizehints_floating = true;
@@ -184,6 +185,10 @@ static GString* client_attr_fullscreen(HSAttribute* attr) {
 
 static GString* client_attr_pseudotile(HSAttribute* attr) {
     CLIENT_UPDATE_ATTR(client_set_pseudotile, pseudotile);
+}
+
+static GString* client_attr_popup(HSAttribute* attr) {
+    CLIENT_UPDATE_ATTR(client_set_popup, popup);
 }
 
 static GString* client_attr_urgent(HSAttribute* attr) {
@@ -315,6 +320,7 @@ HSClient* manage_client(Window win, bool force_unmanage) {
         ATTRIBUTE_CUSTOM(   "instance",     client_attr_instance,   ATTR_READ_ONLY),
         ATTRIBUTE_BOOL(     "fullscreen",   client->fullscreen,     client_attr_fullscreen),
         ATTRIBUTE_BOOL(     "pseudotile",   client->pseudotile,     client_attr_pseudotile),
+        ATTRIBUTE_BOOL(     "popup",        client->popup,          client_attr_popup),
         ATTRIBUTE_BOOL(     "ewmhrequests", client->ewmhrequests,   ATTR_ACCEPT_ALL),
         ATTRIBUTE_BOOL(     "ewmhnotify",   client->ewmhnotify,     ATTR_ACCEPT_ALL),
         ATTRIBUTE_BOOL(     "sizehints_tiling",   client->sizehints_tiling, client_attr_sh_tiling),
@@ -747,7 +753,7 @@ int close_command(int argc, char** argv, GString* output) {
 }
 
 bool is_client_floated(HSClient* client) {
-    return client->tag->floating;
+    return client->popup || client->tag->floating;
 }
 
 void window_close(Window window) {
@@ -928,6 +934,11 @@ void client_set_pseudotile(HSClient* client, bool state) {
     monitor_apply_layout(find_monitor_with_tag(client->tag));
 }
 
+void client_set_popup(HSClient* client, bool state) {
+    client->popup = state;
+    monitor_apply_layout(find_monitor_with_tag(client->tag));
+}
+
 int client_set_property_command(int argc, char** argv) {
     const char* action = (argc > 1) ? argv[1] : "toggle";
 
@@ -944,6 +955,7 @@ int client_set_property_command(int argc, char** argv) {
     } properties[] = {
         { "fullscreen",   client_set_fullscreen, &client->fullscreen    },
         { "pseudotile",   client_set_pseudotile, &client->pseudotile    },
+        { "popup",        client_set_popup,      &client->popup         },
     };
 
     // find the property

@@ -153,6 +153,7 @@ CommandBinding g_commands[] = {
     CMD_BIND(             "floating",       tag_set_floating_command),
     CMD_BIND_NO_OUTPUT(   "fullscreen",     client_set_property_command),
     CMD_BIND_NO_OUTPUT(   "pseudotile",     client_set_property_command),
+    CMD_BIND_NO_OUTPUT(   "popup",          client_set_property_command),
     CMD_BIND(             "tag_status",     print_tag_status_command),
     CMD_BIND(             "merge_tag",      tag_remove_command),
     CMD_BIND(             "rename",         tag_rename_command),
