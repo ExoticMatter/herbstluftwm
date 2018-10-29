@@ -763,6 +763,11 @@ pseudotile [*on*|*off*|*toggle*]::
     client is to ensure that it fits into its tile. If no argument is given,
     pseudotile mode is toggled.
 
+popup [*on*|*off*|*toggle*]::
+    Sets or toggles the popup state of the focused client. If a client is marked
+    as a popup, it will float. Popups can be freely moved or resized with no
+    regard for frame boundaries. *'herbstluftwm-floaty specific'*
+
 object_tree ['PATH']::
     Prints the tree of objects. If the object path 'PATH' is given, only the
     subtree starting at 'PATH' is printed. See the <<OBJECTS,*OBJECTS section*>>
@@ -1173,6 +1178,10 @@ Each 'CONSEQUENCE' consists of a 'NAME'='VALUE' pair. Valid 'NAMES' are:
 +pseudotile+::
     sets the pseudotile state of the client. 'VALUE' can be *on*, *off* or
     *toggle*.
+
++popup+::
+    sets the popup state of the client. 'VALUE' can be *on*, *off* or *toggle*.
+    'herbstluftwm-floaty specific'
 
 +ewmhrequests+::
     sets whether the window state (the fullscreen state and the demands
