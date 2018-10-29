@@ -740,7 +740,11 @@ void frame_apply_client_layout_max(HSFrame* frame, Rectangle rect) {
     for (int i = 0; i < count; i++) {
         HSClient* client = buf[i];
         client_setup_border(client, (g_cur_frame == frame) && (i == selection));
-        client_resize_tiling(client, rect, frame);
+        if (!client->popup) {
+            client_resize_tiling(client, rect, frame);
+        } else {
+            client_resize_floating(client, find_monitor_with_tag(client->tag));
+        }
         if (i == selection) {
             client_raise(client);
         }
